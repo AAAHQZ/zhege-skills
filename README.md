@@ -1,10 +1,10 @@
 # zhege-skills
 
-> zhege 的 Hermes Agent 技能仓库
+> zhege-skills
 
 ## 简介
 
-这个 skills 仓库是 zhege 的技能仓库，面向 Hermes Agent 提供实用的内容提取和转换能力。所有技能以 Markdown 编写，包含触发条件、工作流程和使用说明，可直接安装到 `~/.hermes/skills/` 使用。
+这个 skills 仓库是 zhege 的技能仓库，面向 Hermes Agent 提供实用的能力。所有技能以 Markdown 编写，包含触发条件、工作流程和使用说明，可直接安装到 `~/.hermes/skills/` 使用。
 
 ## 快速索引
 
