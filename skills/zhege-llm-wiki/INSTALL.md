@@ -83,18 +83,18 @@ hermes skills status zhege-llm-wiki
 │   └── AGENT.md          # Wiki Schema 参考
 ├── templates/            # Wiki 页面模板（15 份，含中英双份的 index/log/overview/purpose）
 └── scripts/              # 工具脚本
-    ├── init-wiki.sh      # 初始化知识库
-    ├── lint-runner.sh    # 批量 lint 入口
-    ├── validate-step1.sh # 单步校验
-    ├── source-registry.sh    # 来源总表读写
-    ├── source-registry.tsv    # 来源总表数据
-    ├── source-record-contract.tsv  # 来源记录字段契约
-    ├── adapter-state.sh  # 外挂状态判定
-    ├── cache.sh          # 缓存管理
-    ├── shared-config.sh  # 共享配置
-    ├── delete-helper.sh  # 删除辅助
-    ├── hook-session-start.sh  # 会话启动钩子
-    └── wiki-compat.sh    # 旧版 wiki 兼容
+    ├── init-wiki.sh                  # 初始化知识库
+    ├── lint-runner.sh                # 批量 lint 入口
+    ├── validate-step1.sh             # 单步校验
+    ├── source-registry.sh            # 来源总表读写
+    ├── source-registry.tsv           # 来源总表数据
+    ├── source-record-contract.tsv    # 来源记录字段契约
+    ├── adapter-state.sh              # 外挂状态判定
+    ├── cache.sh                      # 缓存管理
+    ├── shared-config.sh              # 共享配置
+    ├── delete-helper.sh              # 删除辅助
+    ├── hook-session-start.sh         # 会话启动钩子
+    └── wiki-compat.sh                # 旧版 wiki 兼容
 ```
 
 ---
