@@ -13,6 +13,7 @@
 | wechat-article-to-markdown | 微信公众号文章转 Markdown | 微信文章转markdown |
 | zhege-llm-wiki | 个人知识库构建与维护 | 创建知识库 / 查询知识库 / 摄入知识 |
 | zhege-handoff | 会话复盘存档 + 决策条目化确认 | 存档这次会话 / 复盘 / 归档会话 |
+| zhege-kb-to-skill | 把知识语料做成可长期维护的 agent skill | 把资料做成 skill / 知识库怎么加内容 / 设计检索层和回答骨架 |
 
 ## 技能详情
 
@@ -63,3 +64,28 @@
 **可移植性：** 只有三处依赖 runtime（跨会话读取、问卷交互、长期记忆写入），每处都有通用兜底。项目层统一写 `AGENTS.md`（AAIF/Linux Foundation 标准，20+ 工具原生读取）；⚠️ Claude Code 不读 `AGENTS.md`，需在 `CLAUDE.md` 写 `@AGENTS.md`。
 
 **资源：** `references/runtime-adapters.md`（各 runtime 路径 + 验证状态）/ `archive-template.md`（存档模板）/ `extraction-rubric.md`（提取判定）/ `persistence-playbook.md`（落盘与验证）
+
+---
+
+### zhege-kb-to-skill
+
+把一份知识语料（书籍、文档集、法规库、笔记）改造成**能长期维护的 agent skill**。核心是把「内容 / 检索 / 消费契约 / 生产规则 / 闸门与台账」五件事分开落位。零依赖、不联网。
+
+**触发词：** 把资料做成 skill / 建知识库 / 这个 skill 怎么加内容 / 怎么防止索引和正文不同步 / 设计检索层 / 设计回答骨架 / 知识库出过一次事故后怎么补防线
+
+**五件套**（混在一起写，短期省事，长期每件都会拖垮另外四件）：
+
+| 件 | 缺了会怎么死 |
+|---|---|
+| ① 内容独立成目录，绝不进 SKILL.md | 每次调用全量进上下文 |
+| ② 检索层（索引 + 判据现场取） | 要么读完 6MB 才敢答，要么瞎猜 |
+| ③ 消费契约（另一个薄 skill） | 每次回答结构都不一样，没法验收 |
+| ④ 生产规则独立成文件 | 改数据的规矩和消费侧互相污染 |
+| ⑤ 只读闸门进 CI + append-only 台账 | 正文悄悄漂了没人知道，改动不可追溯 |
+
+**工作流程：** 判阶段 → 盘点现状 → 定布局（per-entry / per-chapter）→ 建检索层 → 写消费契约（路由判据**带优先序** / 追问纪律 / 输出骨架 / 边界）→ 配闸门 → 开贡献入口 + 定台账
+
+**自带的：** `scripts/kb_lint.py` 通用校验器（11 项检查、两种布局通用、**只查不改**）——2026-10-01 在两个真实仓库上跑通，并实弹抓到过一次正在发生的索引腐化。
+
+**资源：** `references/corpus-layouts.md` / `retrieval-layer.md` / `answer-contract.md` / `change-ledger.md` / `invariants-and-ci.md` / `parallelism.md` + `templates/`
+

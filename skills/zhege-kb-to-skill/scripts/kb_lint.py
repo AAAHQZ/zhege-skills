@@ -4,9 +4,9 @@
 把两个真实知识库各自手写的 lint 收敛成一个可配置的通用版本，支持两种正文布局：
 
     per-entry    一个 .md 一个条目，frontmatter + 固定小节
-                  实例：work-tutor 的 references/<分类>/<id>.md
+                  例：<分类>/<id>.md
     per-chapter  一个 .md 多条条目，条目是 `### N. 标题` + 机器标签行
-                  实例：HowToLiveBetter 的 book/<节号>-<节名>.md
+                  例：<节号>-<节名>.md
 
 设计约定（照抄两个仓库共同踩出来的结论）：
 
@@ -18,7 +18,7 @@
 用法:
     python kb_lint.py --repo <知识库仓库根> [--config kb-lint.json]
     python kb_lint.py --repo <root> --only id-unique,index-sync
-    python kb_lint.py --repo <root> --emit-index > /tmp/00-index.md
+    python kb_lint.py --repo <root> --emit-index > /tmp/index.new.md
     python kb_lint.py --init-config > kb-lint.json
 
 检查项（--only 可点名，逗号分隔）:
@@ -55,7 +55,10 @@ CONFIG_NAME = "kb-lint.json"
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "layout": "per-entry",
-    "corpus_globs": ["skills/*/references/**/*.md"],
+    # 下面三个 glob 是占位默认值，指向一种中性布局。首次使用请按你自己的正文
+    # 位置改掉——它们不匹配时会以退出码 2 报「没扫到任何语料文件」，
+    # 而不是静默通过。
+    "corpus_globs": ["references/**/*.md"],
     "exclude_globs": [
         "**/_index/**",
         "**/00-index.md",
@@ -64,7 +67,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "**/INSTALL.md",
         "**/backup/**",
     ],
-    "index_globs": ["skills/*/references/00-index.md"],
+    "index_globs": ["references/00-index.md"],
     "required_frontmatter": ["id", "title", "category", "sources"],
     "required_body_sections": [],
     "sources_heading": "## 来源",
