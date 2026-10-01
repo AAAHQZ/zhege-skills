@@ -1,16 +1,35 @@
-# 技能文档面向 WSL / Linux，仓库内容统一按 LF 存储与检出。
+# 行尾与文本类型。
 #
-# 为什么要显式写死：本仓库的脚本主体是 Bash，一旦被 CRLF 检出，
-# `bash -n` 就会报 `syntax error near unexpected token '{$'`，脚本在 Linux 上直接不可用。
-# Windows 上 core.autocrlf=true 会把 LF 检出成 CRLF，所以必须用本文件覆盖默认行为，
-# 而不是依赖每台机器的 autocrlf 设置。
+# 为什么要显式写死：本仓库在 Windows 上开发，但会被检出到 macOS / Linux 上跑。
+# core.autocrlf=true 会把 LF 检出成 CRLF，一旦发生：
+#   - `.tsv` 表头每行多带一个 \r，解析字段时静默出错
+#   - 脚本首行 shebang 后跟 \r，Unix 上直接 "bad interpreter"
+# 所以必须用本文件覆盖默认行为，而不是依赖每台机器的 autocrlf 设置。
+#
+# 编码（UTF-8 无 BOM）**无法由 git 强制**——git 没有 encoding 属性，
+# 只能靠 .editorconfig（编辑器侧）+ scripts/check_encoding.py（仓库侧）两道闸门。
+# 把下面这些类型显式声明为 text，是为了让 git 参与行尾归一化，
+# 同时避免 git 因含非 ASCII 字节而把中文文件误判成 binary 而跳过换行转换。
+
 * text=auto eol=lf
 
+# 仓库内明确是文本的扩展名：显式声明，不依赖 text=auto 的启发式判断
+*.md    text eol=lf
+*.py    text eol=lf
+*.tsv   text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.txt   text eol=lf
+.editorconfig      text eol=lf
+.gitattributes     text eol=lf
+.gitignore         text eol=lf
+
 # 二进制文件不做行尾转换（技能运行时会下载图片，不入库，但保持规则完整）
-*.png binary
-*.jpg binary
+*.png  binary
+*.jpg  binary
 *.jpeg binary
-*.gif binary
+*.gif  binary
 *.webp binary
-*.pdf binary
-*.zip binary
+*.pdf  binary
+*.zip  binary

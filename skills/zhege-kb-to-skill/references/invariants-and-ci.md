@@ -134,7 +134,9 @@ def test_clean_preserves_marker_balance_on_corpus(self):
 
 ```yaml
 - name: 知识库校验（只读）
-  run: python scripts/kb_lint.py --repo . --config kb-lint.json
+  run: |
+    if command -v python3 >/dev/null; then PY=python3; else PY=python; fi
+    "$PY" scripts/kb_lint.py --repo . --config kb-lint.json
 ```
 
 ### 三条原则
@@ -152,7 +154,7 @@ def test_clean_preserves_marker_balance_on_corpus(self):
 
 ```bash
 # 从默认配置起步
-python scripts/kb_lint.py --init-config > kb-lint.json
+"$PY" scripts/kb_lint.py --init-config
 ```
 
 **per-entry 示例**（一文件一条目）：

@@ -18,15 +18,46 @@ skill** 的方法与工具。产出是五件套：内容 / 检索层 / 消费契
 
 ## 安装
 
+技能目录名与 `SKILL.md` 文件名一致即可被各自的 skill 机制发现。
+
+| Runtime | 技能目录 |
+|---------|----------|
+| MiniMax Code / mavis | `%USERPROFILE%\.minimax\skills\zhege-kb-to-skill\` |
+| Claude Code | `~/.claude/skills/zhege-kb-to-skill/` |
+| Codex CLI | `~/.codex/skills/zhege-kb-to-skill/` |
+| 其他 | 该 agent 的 skills 目录，结构同 `SKILL.md` + `scripts/` + `references/` |
+
+> **历史约定 `~/.hermes/skills/` 已废弃**，不要再用。
+
+**Linux / macOS：**
+
 ```bash
-# 复制到目标 runtime 的 skills 目录
-cp -r skills/zhege-kb-to-skill ~/.hermes/skills/          # Hermes
-cp -r skills/zhege-kb-to-skill ~/.claude/skills/          # Claude Code
-cp -r skills/zhege-kb-to-skill ~/.codex/skills/           # Codex
+SKILLS="$HOME/.minimax/skills"        # 按上表换成目标 runtime 的目录
+cp -r skills/zhege-kb-to-skill "$SKILLS/"
 ```
 
-**本 skill 没有任何外部依赖，也不需要网络。** 它是纯方法 + 一个本地校验脚本，
-装到哪都能用。
+**Windows PowerShell：**
+
+```powershell
+$SKILLS = "$env:USERPROFILE\.minimax\skills"
+Copy-Item -Path skills\zhege-kb-to-skill -Destination $SKILLS -Recurse -Force
+```
+
+**本 skill 没有任何外部依赖，也不需要网络。** 纯方法 + 一个只用标准库的校验脚本，装到哪都能用。
+
+### 解释器名
+
+`python3` / `python` / `py` 各平台不同，调用前先探测：
+
+```bash
+command -v python3 >/dev/null && PY=python3 || PY=python
+```
+
+```powershell
+if (Get-Command python -ErrorAction SilentlyContinue) { $PY = "python" }
+elseif (Get-Command py -ErrorAction SilentlyContinue)    { $PY = "py" }
+else { $PY = "python3" }
+```
 
 ## 目录结构
 
@@ -52,20 +83,24 @@ skills/zhege-kb-to-skill/
 
 ```bash
 # 从默认配置起步
-python scripts/kb_lint.py --init-config > kb-lint.json
+"$PY" scripts/kb_lint.py --init-config
 
 # 全量校验（只查不改，退出码 0/1/2）
-python scripts/kb_lint.py --repo <库根>
+"$PY" scripts/kb_lint.py --repo <库根>
 
 # 只跑某几项
-python scripts/kb_lint.py --repo <库根> --only id-unique,index-sync
+"$PY" scripts/kb_lint.py --repo <库根> --only id-unique,index-sync
 
 # 生成规范索引到 stdout，人工比对后再落盘
-python scripts/kb_lint.py --repo <库根> --emit-index > /tmp/index.new.md
+"$PY" scripts/kb_lint.py --repo <库根> --emit-index
 
 # 列出全部检查项
-python scripts/kb_lint.py --list-checks
+"$PY" scripts/kb_lint.py --list-checks
 ```
+
+> `--init-config` 和 `--emit-index` 把结果打到 **stdout**，不写盘。
+> **不要用 shell 重定向 `> file` 落盘**——重定向行为各 shell 不同，`/tmp` 在 Windows 上
+> 也不存在。正确做法：用文件写入工具捕获 stdout 内容再落盘（顺带避免 PowerShell 5.1 写出 BOM）。
 
 ### 检查项
 
@@ -122,8 +157,13 @@ python scripts/kb_lint.py --list-checks
 
 ```yaml
 - name: 知识库校验（只读）
-  run: python scripts/kb_lint.py --repo . --config kb-lint.json
+  run: |
+    if command -v python3 >/dev/null; then PY=python3; else PY=python; fi
+    "$PY" scripts/kb_lint.py --repo . --config kb-lint.json
 ```
+
+> 解释器名别写死：GitHub Actions 的 ubuntu 镜像有 `python3`，
+> 别的 runner（尤其自建 / Windows runner）可能只有 `python`。一行探测最省事。
 
 三条原则：
 
@@ -155,8 +195,8 @@ python scripts/kb_lint.py --list-checks
 本 skill 自身不做自动校验（所在仓库无 CI）。改完跑：
 
 ```bash
-python -m py_compile skills/zhege-kb-to-skill/scripts/kb_lint.py
-python skills/zhege-kb-to-skill/scripts/kb_lint.py --list-checks
+"$PY" -m py_compile skills/zhege-kb-to-skill/scripts/kb_lint.py
+"$PY" skills/zhege-kb-to-skill/scripts/kb_lint.py --list-checks
 ```
 
 并人工核对 `SKILL.md` 的 frontmatter 是否完整、所在仓库根 `README.md` 的索引表是否同步。

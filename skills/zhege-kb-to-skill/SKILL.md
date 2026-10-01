@@ -175,11 +175,15 @@ triggers:
 把不变量翻译成**机器能跑的断言**，接进 CI。逐条翻译方法见
 `references/invariants-and-ci.md`，通用校验器已经写好：`scripts/kb_lint.py`。
 
-```bash
-python scripts/kb_lint.py --repo <库根>                  # 全量校验，只查不改
-python scripts/kb_lint.py --repo <库根> --only id-unique,index-sync
-python scripts/kb_lint.py --repo <库根> --emit-index     # 打印规范索引，人工比对
 ```
+"$PY" scripts/kb_lint.py --repo <库根>                  # 全量校验，只查不改
+"$PY" scripts/kb_lint.py --repo <库根> --only id-unique,index-sync
+"$PY" scripts/kb_lint.py --repo <库根> --emit-index     # 打印规范索引，人工比对
+```
+
+> `$PY` 是探测出来的解释器名：Unix 通常 `python3`，Windows 通常 `python` 或 `py`。
+> `--emit-index` 打到 stdout 不写盘，用文件写入工具捕获后落盘——
+> **不要用 shell 重定向**，那在三个平台上行为各不相同。
 
 **格式能被 lint 守住，行为契约只能靠另一种方式守**：写测试断言**承载关键判据的那句
 具体句子还在**。路由判据、追问纪律这类东西在文档里读起来完全正常，

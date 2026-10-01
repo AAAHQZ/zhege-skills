@@ -34,19 +34,28 @@ zhege-handoff/
 
 | Runtime | 用户级技能目录 | 状态 |
 |---------|---------------|------|
-| MiniMax Code | `C:\Users\HW\.minimax\skills\<name>\SKILL.md` | ✅ 目录已存在 |
+| MiniMax Code | `~/.minimax/skills/<name>/SKILL.md` | ✅ 目录已存在（Windows 上即 `%USERPROFILE%\.minimax\skills\`） |
 | Claude Code | `~/.claude/skills/<name>/SKILL.md` | ✅ 目录已存在 |
-| Hermes | `~/.hermes/skills/<name>/` | 📄 本仓库 README 约定，本机未安装 |
+| Codex CLI | `~/.codex/skills/<name>/SKILL.md` | 📄 未验证 |
 | 其他 | 查该 agent 的 skills/plugins 目录，结构同 `SKILL.md` + `references/` | 📄 |
 
-**通用安装命令**（把 `<目标目录>` 换成上表的路径）：
+> `~/` 是跨平台记号：Unix 展开为 `/home/<user>` 或 `/Users/<user>`，Windows 展开为 `C:\Users\<user>`。
+> **不要**把它硬展开成某一台机器的绝对路径。`~/.hermes/skills/` 是**已废弃**的历史约定。
+
+**通用安装命令**：
+
+```bash
+# Linux / macOS
+cp -r skills/zhege-handoff "$HOME/.minimax/skills/"
+```
 
 ```powershell
+# Windows
 $src = "D:\MiniMaxWork\zhege-skills\skills\zhege-handoff"
-$dst = "<目标目录>\zhege-handoff"
+$dst = "$env:USERPROFILE\.minimax\skills\zhege-handoff"
 New-Item -ItemType Directory -Force -Path "$dst\references" | Out-Null
-Copy-Item "$src\SKILL.md"    -Destination $dst -Force
-Copy-Item "$src\references\*" -Destination "$dst\references" -Force
+Copy-Item "$src\SKILL.md"       -Destination $dst -Force
+Copy-Item "$src\references\*"  -Destination "$dst\references" -Force
 ```
 
 > 装完可能需要重启或新开会话，技能才会出现在该 agent 的可用技能列表里。
@@ -66,9 +75,15 @@ Claude Code 不原生读 `AGENTS.md`。本技能会往 `AGENTS.md` 写项目层�
 
 ### 1. 结构校验
 
+```bash
+# Linux / macOS
+PYTHONUTF8=1 python3 <skill-creator>/scripts/quick_validate.py "skills/zhege-handoff"
+```
+
 ```powershell
+# Windows
 $env:PYTHONUTF8='1'   # 必须，否则校验器在中文 SKILL.md 上崩
-python "C:\Users\HW\.claude\skills\skill-creator\scripts\quick_validate.py" "D:\MiniMaxWork\zhege-skills\skills\zhege-handoff"
+python "$env:USERPROFILE\.claude\skills\skill-creator\scripts\quick_validate.py" "skills\zhege-handoff"
 # 期望输出：Skill is valid!
 ```
 

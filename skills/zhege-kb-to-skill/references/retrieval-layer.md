@@ -53,9 +53,13 @@ agent 只能靠标题猜，猜错就得回读，检索层白做。
 
 正确做法是让 agent **当时从被引用的文件里取出来照着算**：
 
-```bash
-grep -n '权重定义行' index.html
 ```
+用 agent 自带的文件检索工具（grep / read）查 '权重定义行'，不要记一个数。
+```
+
+> 别写成 `grep -n '权重定义行' index.html` 这种固定命令——`grep` 在 Windows 上
+> 不一定有（用户得先装 Git），而**任何 agent 都有内置的文件检索工具**，
+> 那是唯一三平台都在的东西。
 
 消费侧写清「这个档位怎么算、以哪个文件为准」，并给出一条能把它抠出来的命令。
 
@@ -162,12 +166,19 @@ grep -n '权重定义行' index.html
 
 ```bash
 # 判「有没有文件漏进索引」
-python scripts/kb_lint.py --repo . --only index-sync
+"$PY" scripts/kb_lint.py --repo . --only index-sync
 
-# 生成规范索引，人工比对后落盘
-python scripts/kb_lint.py --repo . --emit-index > /tmp/index.new.md
-diff skills/x/references/00-index.md /tmp/index.new.md
+# 生成规范索引到 stdout
+"$PY" scripts/kb_lint.py --repo . --emit-index
 ```
+
+`--emit-index` **不写盘**。用文件写入工具把 stdout 内容落到一个临时文件，
+再和 `skills/x/references/00-index.md` 逐行比对（用文件读取工具，
+不要用 `diff`——它在 Windows 上不是内置命令）。
+
+> 不要写成 `> /tmp/index.new.md` + `diff`：重定向行为各 shell 不同，
+> `/tmp` 在 Windows 上解析成当前盘符根下的 `D:\tmp\`（通常不存在），
+> `diff` 也不一定装了。三条里每一条都会在某个平台上静默失败。
 
 **这道检查必须真的跑过一次**。没有实际拦截记录的话，它和没有这道检查没有区别。
 建议在首次搭建时故意删掉一条索引行、跑一次校验、确认它报出来，再恢复。

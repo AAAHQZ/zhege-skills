@@ -47,28 +47,67 @@ llm-wiki 帮你构建一个**持续增长的个人知识库**。它不是传统�
 
 ## Script Directory
 
-Scripts located in `scripts/` subdirectory.
+所有脚本都是 **Python 3（仅标准库，零第三方依赖）**，位于 `scripts/` 子目录。
+**不要用 `bash` 调用**——本技能已完全脱离 shell，在 Windows / macOS / Linux 上行为一致。
 
-**Path Resolution**:
-1. `SKILL_DIR` = this SKILL.md's directory
-2. Script path = `${SKILL_DIR}/scripts/<script-name>`
+**① 定位 skill 目录**（脚本路径从这里拼，不要写绝对路径）：
+
+```bash
+SKILL_DIR="$HOME/.minimax/skills/zhege-llm-wiki"    # 按当前 runtime 换
+```
+
+```powershell
+$SKILL_DIR = "$env:USERPROFILE\.minimax\skills\zhege-llm-wiki"
+```
+
+| Runtime | 技能目录 |
+|---------|----------|
+| MiniMax Code / mavis | `%USERPROFILE%\.minimax\skills\zhege-llm-wiki\` |
+| Claude Code | `~/.claude/skills/zhege-llm-wiki/` |
+| Codex CLI | `~/.codex/skills/zhege-llm-wiki/` |
+| 其他 | 该 agent 的 skills 目录，结构同 `SKILL.md` + `scripts/` |
+
+**② 定位 Python 解释器**（`python3` / `python` / `py` 三个名字各平台不同）：
+
+```bash
+command -v python3 >/dev/null && PY=python3 || PY=python
+```
+
+```powershell
+if (Get-Command python -ErrorAction SilentlyContinue) { $PY = "python" }
+elseif (Get-Command py -ErrorAction SilentlyContinue)    { $PY = "py" }
+else { $PY = "python3" }
+```
+
+**③ 路径写法**：命令示例里的 `/` 分隔符在 Windows 的 Python 里同样能用
+（`os.path` / `pathlib` 会归一化），但**目录拼接请用 `${SKILL_DIR}/scripts/xxx.py`**，
+不要手写 `C:\` 或 `/mnt/`。
+
+> **不要**把 `WIKI_LANG`、`SKILL_DIR` 之类的写成 bash `export`——在 PowerShell 里
+> 是 `$env:X = "..."`。本文所有 `${VAR}` 都是占位符，按当前 shell 换写法即可。
 
 ---
 
 ## 依赖检查
 
-首次使用时，检查以下依赖是否已安装。如果缺失，提示用户运行安装：
+首次使用时检查可选依赖 skill 是否可用：
 
 ```bash
-hermes skills list
+ls "$SKILL_DIR" | grep -E 'baoyu-url-to-markdown|wechat-article-to-markdown|youtube-transcript'
 ```
 
-依赖 skill / 工具：
+```powershell
+Get-ChildItem (Split-Path $SKILL_DIR) -Name | Select-String 'baoyu-url-to-markdown|wechat-article-to-markdown|youtube-transcript'
+```
+
+可选依赖 skill / 工具：
 - `baoyu-url-to-markdown` — 普通网页、X/Twitter、部分知乎提取
 - `wechat-article-to-markdown` — 微信公众号提取
 - `youtube-transcript` — YouTube 字幕提取
 
-即使部分依赖缺失，skill 仍可工作（用户可以手动粘贴文本内容）。
+**这些全都是可选项。** 任何一个缺失都不阻塞流程——用户可以手动粘贴文本内容。
+不要用某个 runtime 专属的包管理 CLI 去"检查安装状态"，直接列同级目录即可。
+更权威的状态判断走 `adapter-state.py check`（见下）。
 
 ## 外挂状态模型
 
@@ -77,22 +116,22 @@ hermes skills list
 所有需要枚举来源、读取 `source_label`、`raw_dir`、`adapter_name`、`fallback_hint` 的地方，都先读来源总表：
 
 ```bash
-bash ${SKILL_DIR}/scripts/source-registry.sh list
+${PY} ${SKILL_DIR}/scripts/source-registry.py list
 ```
 
 需要拿单个来源的定义时，用：
 
 ```bash
-bash ${SKILL_DIR}/scripts/source-registry.sh get <source_id>
+${PY} ${SKILL_DIR}/scripts/source-registry.py get <source_id>
 ```
 
 对 URL 类来源，先运行：
 
 ```bash
-bash ${SKILL_DIR}/scripts/adapter-state.sh check <source_id>
+${PY} ${SKILL_DIR}/scripts/adapter-state.py check <source_id>
 ```
 
-`adapter-state.sh check` 返回 8 列：
+`adapter-state.py check` 返回 8 列：
 
 ```text
 source_id	source_label	state	state_label	detail	recovery_action	install_hint	fallback_hint
@@ -107,7 +146,7 @@ source_id	source_label	state	state_label	detail	recovery_action	install_hint	fal
 当自动提取实际执行后，再运行：
 
 ```bash
-bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> <output_path>
+${PY} ${SKILL_DIR}/scripts/adapter-state.py classify-run <source_id> <exit_code> <output_path>
 ```
 
 用返回的 `detail`、`recovery_action`、`install_hint`、`fallback_hint` 生成提示。核心主线不因外挂失败而中断。
@@ -201,11 +240,11 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 
 4. **运行初始化脚本**：
    ```bash
-   bash ${SKILL_DIR}/scripts/init-wiki.sh "<路径>" "<主题>"
+   ${PY} ${SKILL_DIR}/scripts/init-wiki.py "<路径>" "<主题>"
    ```
 
 5. **补充初始化结果说明**：
-   - `init-wiki.sh` 会同时生成 `purpose.md` 和 `.wiki-cache.json`
+   - `init-wiki.py` 会同时生成 `purpose.md` 和 `.wiki-cache.json`
    - `purpose.md` 和 `.wiki-schema.md` 同级存放，用来记录研究目标、关键问题和研究范围
    - 提醒用户优先填写核心目标和关键问题；这些内容写在 `purpose.md` 里，后续 ingest 会优先参考这里的方向
 
@@ -283,22 +322,29 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 
 **外挂前置判断**：
 
-- URL 先调用 `bash ${SKILL_DIR}/scripts/source-registry.sh match-url "<url>"`
-- 本地文件先调用 `bash ${SKILL_DIR}/scripts/source-registry.sh match-file "<path>"`
-- 纯文本粘贴直接调用 `bash ${SKILL_DIR}/scripts/source-registry.sh get plain_text`
-- `source-registry.sh` 返回 10 列：`source_id`、`source_label`、`source_category`、`input_mode`、`match_rule`、`raw_dir`、`adapter_name`、`dependency_name`、`dependency_type`、`fallback_hint`
-- 调用 `bash ${SKILL_DIR}/scripts/adapter-state.sh check <source_id>`
-- 从 `adapter-state.sh check` 的 8 列结果里读取 `state`、`detail`、`recovery_action`、`install_hint`、`fallback_hint`
+- URL 先调用 `${PY} ${SKILL_DIR}/scripts/source-registry.py match-url "<url>"`
+- 本地文件先调用 `${PY} ${SKILL_DIR}/scripts/source-registry.py match-file "<path>"`
+- 纯文本粘贴直接调用 `${PY} ${SKILL_DIR}/scripts/source-registry.py get plain_text`
+- `source-registry.py` 返回 10 列：`source_id`、`source_label`、`source_category`、`input_mode`、`match_rule`、`raw_dir`、`adapter_name`、`dependency_name`、`dependency_type`、`fallback_hint`
+- 调用 `${PY} ${SKILL_DIR}/scripts/adapter-state.py check <source_id>`
+- 从 `adapter-state.py check` 的 8 列结果里读取 `state`、`detail`、`recovery_action`、`install_hint`、`fallback_hint`
 - 如果 `state=not_installed` / `env_unavailable` / `unsupported` → 不调用外挂，直接按 `detail`、`recovery_action`、`install_hint`、`fallback_hint` 告诉用户下一步
 - 只有返回 `available` 时，才继续自动提取
 
 **URL 类素材**（统一走来源总表，不手写域名表）：
 
 > **Chrome 提示**（仅当 `adapter_name=baoyu-url-to-markdown` 时）：
-> adapter-state.sh check 已通过 `lsof -i :9222 -sTCP:LISTEN` 确认 Chrome 调试端口状态。
+> `adapter-state.py check` 用 Python socket 直连 `127.0.0.1:9222` 确认 Chrome 调试端口状态
+> （**不用 `lsof`**——那是 Linux/macOS 专属命令，Windows 上没有）。
 > 如果 check 返回 `env_unavailable`，直接按 `fallback_hint` 引导用户，不要自行检测 Chrome。
 > 如果 check 返回 `available`，正常调用外挂。baoyu-url-to-markdown 会自己处理 Chrome 启动，**继续执行，不要等待用户确认**。
-> 如果提取仍然失败，提示用户：`open -na "Google Chrome" --args --remote-debugging-port=9222`
+> 如果提取仍然失败，让用户用**他当前平台**的方式启动带调试端口的 Chrome：
+>
+> | 平台 | 命令 |
+> |------|------|
+> | macOS | `open -na "Google Chrome" --args --remote-debugging-port=9222` |
+> | Linux | `google-chrome --remote-debugging-port=9222` |
+> | Windows | `& "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222` |
 
 - 如果 `source_category=manual_only` → 不调用外挂，直接使用 `fallback_hint`
 - 如果 `adapter_name=wechat-article-to-markdown` → 执行 `wechat-article-to-markdown "<URL>"`
@@ -306,7 +352,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 - 如果 `adapter_name=baoyu-url-to-markdown` → 调用 `baoyu-url-to-markdown`
 
 **本地文件**：
-- 统一走 `bash ${SKILL_DIR}/scripts/source-registry.sh match-file "<path>"`
+- 统一走 `${PY} ${SKILL_DIR}/scripts/source-registry.py match-file "<path>"`
 - 命中后直接读取，不调用外挂
 
 **纯文本粘贴**：
@@ -315,7 +361,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 
 **统一回退规则**：
 
-- 对自动提取结果，统一运行 `bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> <output_path>`
+- 对自动提取结果，统一运行 `${PY} ${SKILL_DIR}/scripts/adapter-state.py classify-run <source_id> <exit_code> <output_path>`
 - 从 `classify-run` 返回的 8 列结果里读取 `state`、`detail`、`recovery_action`、`fallback_hint`
 - 如果返回 `runtime_failed` → 按 `detail`、`recovery_action`、`fallback_hint` 告诉用户“这次自动提取失败，可以先重试一次；如果还不行，就改走手动入口”
 - 如果返回 `empty_result` → 按 `detail`、`recovery_action`、`fallback_hint` 告诉用户“自动提取没有拿到有效正文，请手动补全文本后继续”
@@ -346,7 +392,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 4. **缓存检查**：
    - 在进入 LLM 处理前，先运行：
      ```bash
-     bash ${SKILL_DIR}/scripts/cache.sh check "<raw 文件路径>"
+     ${PY} ${SKILL_DIR}/scripts/cache.py check "<raw 文件路径>"
      ```
    - 如果返回 `HIT` → 跳过本次 LLM 调用，直接读取已有 wiki 页面，并告诉用户这是“无变化，直接复用已有结果”
    - 如果返回 `MISS` → 继续执行下面的两步流程
@@ -377,7 +423,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
    Step 1 完成后，必须执行验证：
    1. mkdir -p {wiki_root}/.wiki-tmp
    2. 将 Step 1 JSON 写入 {wiki_root}/.wiki-tmp/step1-latest.json
-   3. 调用 bash ${SKILL_DIR}/scripts/validate-step1.sh {wiki_root}/.wiki-tmp/step1-latest.json
+   3. 调用 ${PY} ${SKILL_DIR}/scripts/validate-step1.py {wiki_root}/.wiki-tmp/step1-latest.json
    4. 验证完成后删除 {wiki_root}/.wiki-tmp/step1-latest.json
 
    如果脚本返回非 0，自动回退到单步 ingest（不进行 Step 2）。
@@ -424,7 +470,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
    - 记录新增和更新的页面列表
    - 当前流程成功写完后，运行：
      ```bash
-     bash ${SKILL_DIR}/scripts/cache.sh update "<raw 文件路径>" "wiki/sources/{日期}-{短标题}.md"
+     ${PY} ${SKILL_DIR}/scripts/cache.py update "<raw 文件路径>" "wiki/sources/{日期}-{短标题}.md"
      ```
 
 13. **向用户展示结果**（按 `WIKI_LANG` 切换语言）：
@@ -453,7 +499,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 1. **保存原始素材**到对应 `raw/` 目录
 2. **读取上下文并检查缓存**：
    - 仍然优先读取 `purpose.md`
-   - 仍然先运行 `bash ${SKILL_DIR}/scripts/cache.sh check "<raw 文件路径>"`
+   - 仍然先运行 `${PY} ${SKILL_DIR}/scripts/cache.py check "<raw 文件路径>"`
    - 如果缓存命中，直接复用已有结果
 3. **生成简化摘要页**（`wiki/sources/`）：
    - 只包含基本信息和核心观点
@@ -609,7 +655,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 2. **Step 0：调用脚本做机械检查**（必须先做，不要跳过）：
 
    ```bash
-   bash ${SKILL_DIR}/scripts/lint-runner.sh <wiki_root>
+   ${PY} ${SKILL_DIR}/scripts/lint-runner.py <wiki_root>
    ```
 
    脚本负责三项**机械检查**（只需要精确匹配，不需要判断）：
@@ -679,7 +725,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 
 ### 步骤
 
-1. 先运行 `bash ${SKILL_DIR}/scripts/source-registry.sh list` 读取来源总表
+1. 先运行 `${PY} ${SKILL_DIR}/scripts/source-registry.py list` 读取来源总表
 2. 获取知识库路径（按上面的 CWD 检查逻辑）
 3. 统计：
    - 按来源总表中的 `source_label` 和 `raw_dir` 逐项统计 `raw/` 文件数
@@ -690,7 +736,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
    - `purpose.md 是否存在`
 4. 读取 `log.md` 最后 5 条记录
 5. 读取 `index.md` 获取主题概览
-6. 运行 `bash ${SKILL_DIR}/scripts/adapter-state.sh summary-human` 获取外挂状态
+6. 运行 `${PY} ${SKILL_DIR}/scripts/adapter-state.py summary-human` 获取外挂状态
 7. **输出报告**（按 `WIKI_LANG` 切换语言）：
 
    **zh**：
@@ -726,7 +772,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
    ```
    （英文版按「输出语言规则」生成，结构相同。）
 
-   外挂状态直接使用 `bash ${SKILL_DIR}/scripts/adapter-state.sh summary-human` 的输出，不要自己再重写一套来源清单。
+   外挂状态直接使用 `${PY} ${SKILL_DIR}/scripts/adapter-state.py summary-human` 的输出，不要自己再重写一套来源清单。
 
 ---
 
@@ -967,7 +1013,7 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 2. **扫描影响范围**：
    - 先运行：
      ```bash
-     bash ${SKILL_DIR}/scripts/delete-helper.sh scan-refs "<wiki 根目录>" "<素材文件名>"
+     ${PY} ${SKILL_DIR}/scripts/delete-helper.py scan-refs "<wiki 根目录>" "<素材文件名>"
      ```
    - 用脚本返回的页面列表作为引用扫描结果
    - 逐页判断是“删除整页”还是“保留页面但移除该素材引用”
@@ -987,11 +1033,11 @@ bash ${SKILL_DIR}/scripts/adapter-state.sh classify-run <source_id> <exit_code> 
 5. **清理缓存**：
    - 删除完成后，对对应 raw 文件运行：
      ```bash
-     bash ${SKILL_DIR}/scripts/cache.sh invalidate "<raw 文件路径>"
+     ${PY} ${SKILL_DIR}/scripts/cache.py invalidate "<raw 文件路径>"
      ```
 
 6. **断链检查**：
-   - 用 grep 或 `delete-helper.sh` 再扫一遍指向已删除页面的链接
+   - 用 `delete-helper.py` 再扫一遍指向已删除页面的链接
    - 清理明确可判定的断链；如果归属不清，保留原文并提示用户后续人工确认
 
 7. **向用户报告结果**：

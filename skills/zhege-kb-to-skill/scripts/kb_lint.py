@@ -18,8 +18,15 @@
 用法:
     python kb_lint.py --repo <知识库仓库根> [--config kb-lint.json]
     python kb_lint.py --repo <root> --only id-unique,index-sync
-    python kb_lint.py --repo <root> --emit-index > /tmp/index.new.md
-    python kb_lint.py --init-config > kb-lint.json
+    python kb_lint.py --repo <root> --emit-index
+    python kb_lint.py --init-config
+
+跨平台约定:
+    解释器名各平台不同：Unix 是 python3，Windows 常是 python 或 py。调用方先探测。
+    --emit-index / --init-config 打到 stdout，**不要用 shell 重定向落盘**（`> file`
+    在不同 shell 行为不同，且 /tmp 在 Windows 上不存在）。用文件写入工具捕获
+    stdout 的内容再落盘，跨平台且不会写出 BOM。
+    退出码: 0 通过 / 1 有问题 / 2 配置或用法错误。
 
 检查项（--only 可点名，逗号分隔）:
     fm            frontmatter 能解析、必填字段齐全
@@ -631,6 +638,12 @@ CHECK_FUNCS = {
 
 
 def main(argv: Optional[list] = None) -> int:
+    # Windows 控制台默认 GBK，打印中文报错可能抛 UnicodeEncodeError。
+    # 兜底只保证不崩；终端显示乱码是显示层问题，不代表语料文件坏了。
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     ap = argparse.ArgumentParser(
         description="知识库校验器（只查不改）",
         epilog="退出码：0 通过 / 1 有检查未过 / 2 配置或用法错误")

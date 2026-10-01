@@ -4,31 +4,51 @@
 
 ## 简介
 
-这个 skills 仓库是 zhege 的技能仓库，面向 Hermes Agent 提供实用的能力。所有技能以 Markdown 编写，包含触发条件、工作流程和使用说明，可直接安装到 `~/.hermes/skills/` 使用。
+这个 skills 仓库是 zhege 的技能仓库，面向各类 AI Agent 提供实用的能力。所有技能以 Markdown 编写，包含触发条件、工作流程和使用说明。
+
+**跨平台**：所有技能都能在 **Windows / macOS / Linux** 上原样运行。
+脚本一律是 Python（仅标准库），不依赖任何 shell 或第三方 CLI。
+详见 [AGENTS.md](AGENTS.md) 的「跨平台是硬约束」。
 
 ## 快速索引
 
 | 技能 | 描述 | 触发词 |
 |------|------|--------|
-| wechat-article-to-markdown | 微信公众号文章转 Markdown | 微信文章转markdown |
+| wechat-article-to-markdown | 微信公众号文章转 Markdown（图片本地化） | 微信文章转markdown |
 | zhege-llm-wiki | 个人知识库构建与维护 | 创建知识库 / 查询知识库 / 摄入知识 |
 | zhege-handoff | 会话复盘存档 + 决策条目化确认 | 存档这次会话 / 复盘 / 归档会话 |
 | zhege-kb-to-skill | 把知识语料做成可长期维护的 agent skill | 把资料做成 skill / 知识库怎么加内容 / 设计检索层和回答骨架 |
+
+## 安装到哪个 runtime
+
+技能目录名与 `SKILL.md` 文件名一致即可被发现。
+
+| Runtime | 技能目录 |
+|---------|----------|
+| MiniMax Code / mavis | `~/.minimax/skills/<name>/` |
+| Claude Code | `~/.claude/skills/<name>/` |
+| Codex CLI | `~/.codex/skills/<name>/` |
+| 其他 | 该 agent 的 skills 目录，结构同 `SKILL.md` + `scripts/` + `references/` |
+
+`~/` 是跨平台记号（Windows 展开为 `C:\Users\<你>`）。
+**不要**把路径硬展开成某一台机器的绝对路径。
 
 ## 技能详情
 
 ### wechat-article-to-markdown
 
-将微信公众号文章转换为 Markdown 格式，尽可能保留原文格式（标题、加粗、斜体、链接、图片、引用、代码块、列表等）。
+将微信公众号文章转换为 Markdown 格式，尽可能保留原文格式（标题、加粗、斜体、链接、图片、引用、代码块、列表等），并把图片下载到本地。
 
 **触发词：** 微信文章转markdown / wechat article to markdown / 提取微信公众号内容
 
 **工作流程：**
-1. 用 curl 爬取 HTML 到 `/tmp/wechat_article.html`
-2. 用 `wechat_to_markdown.py` 脚本转换为 Markdown
-3. 保存到 `/mnt/d/MyLibrary/`
+1. 探测 Python 解释器（`python3` / `python` / `py`）
+2. 用 `wechat_to_markdown.py` 直接抓取并转换（**零外部依赖**），或先存 HTML 再传第三个参数
+3. 图片下载到 Markdown 同目录
 
 **保留格式：** 加粗、斜体、链接、图片、引用块、代码块、列表、标题
+
+**依赖：** Python ≥ 3.8（仅标准库）。不用 curl / defuddle / 浏览器。
 
 ---
 
@@ -43,6 +63,9 @@
 - **Ingest**：摄入新来源 → 提取要点 → 更新相关页面 → 记录到 log.md
 - **Query**：读取 index.md → 检索相关页面 → 综合答案并标注来源
 - **Lint**：检查矛盾、过时声明、孤立页面、缺失交叉引用
+
+**依赖：** Python ≥ 3.8。**全部 12 个工具脚本都是 Python（仅标准库），不再有 `.sh`。**
+脚本用 `${PY} ${SKILL_DIR}/scripts/<name>.py` 调用，子命令、参数、输出列、退出码与旧版一致。
 
 ---
 
