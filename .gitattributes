@@ -1,0 +1,16 @@
+# 技能文档面向 WSL / Linux，仓库内容统一按 LF 存储与检出。
+#
+# 为什么要显式写死：本仓库的脚本主体是 Bash，一旦被 CRLF 检出，
+# `bash -n` 就会报 `syntax error near unexpected token '{$'`，脚本在 Linux 上直接不可用。
+# Windows 上 core.autocrlf=true 会把 LF 检出成 CRLF，所以必须用本文件覆盖默认行为，
+# 而不是依赖每台机器的 autocrlf 设置。
+* text=auto eol=lf
+
+# 二进制文件不做行尾转换（技能运行时会下载图片，不入库，但保持规则完整）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+*.zip binary

@@ -49,7 +49,7 @@ Scripts located in `scripts/` subdirectory.
 首次使用时，检查以下依赖是否已安装。如果缺失，提示用户运行安装：
 
 ```bash
-bash ${SKILL_DIR}/setup.sh
+hermes skills list
 ```
 
 依赖 skill / 工具：

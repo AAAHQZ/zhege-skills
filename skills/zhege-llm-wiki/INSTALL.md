@@ -48,19 +48,7 @@ hermes skills add wechat-article-to-markdown  # 微信公众号提取
 hermes skills add youtube-transcript      # YouTube 字幕提取
 ```
 
-### 第二步：运行依赖检查
-
-```bash
-cd ~/.hermes/skills/zhege-llm-wiki
-bash scripts/setup.sh
-```
-
-脚本检查内容：
-- 依赖技能是否已安装
-- 必要命令是否可用
-- Chrome 调试端口状态（仅当检测到 `baoyu-url-to-markdown` 时）
-
-### 第三步：配置 Chrome 远程调试（可选）
+### 第二步：配置 Chrome 远程调试（可选）
 
 仅当需要自动抓取网页内容时才需要配置：
 
@@ -74,7 +62,7 @@ google-chrome --remote-debugging-port=9222
 wsl.exe -e google-chrome --remote-debugging-port=9222
 ```
 
-### 第四步：验证安装
+### 第三步：验证安装
 
 ```bash
 # 检查技能状态
@@ -93,14 +81,20 @@ hermes skills status zhege-llm-wiki
 ├── INSTALL.md            # 本安装指南
 ├── references/
 │   └── AGENT.md          # Wiki Schema 参考
-├── templates/            # Wiki 页面模板
+├── templates/            # Wiki 页面模板（15 份，含中英双份的 index/log/overview/purpose）
 └── scripts/              # 工具脚本
-    ├── setup.sh          # 依赖检查
     ├── init-wiki.sh      # 初始化知识库
-    ├── source-registry.sh
-    ├── adapter-state.sh
-    ├── cache.sh
-    └── lint-runner.sh
+    ├── lint-runner.sh    # 批量 lint 入口
+    ├── validate-step1.sh # 单步校验
+    ├── source-registry.sh    # 来源总表读写
+    ├── source-registry.tsv    # 来源总表数据
+    ├── source-record-contract.tsv  # 来源记录字段契约
+    ├── adapter-state.sh  # 外挂状态判定
+    ├── cache.sh          # 缓存管理
+    ├── shared-config.sh  # 共享配置
+    ├── delete-helper.sh  # 删除辅助
+    ├── hook-session-start.sh  # 会话启动钩子
+    └── wiki-compat.sh    # 旧版 wiki 兼容
 ```
 
 ---
@@ -127,7 +121,7 @@ hermes skills status zhege-llm-wiki
 
 | 问题 | 解决方法 |
 |------|---------|
-| 提示"依赖技能缺失" | 运行 `bash ~/.hermes/skills/zhege-llm-wiki/scripts/setup.sh` 检查 |
+| 提示"依赖技能缺失" | 运行 `hermes skills list` 看缺哪个，再按「第一步」补装 |
 | 网页提取失败 | 确认 Chrome 已启动且调试端口 9222 开放 |
 | 脚本执行报错 | 确认 `scripts/` 目录完整，尝试重新安装技能 |
 | 知识库初始化失败 | 检查目标路径是否可写，磁盘空间是否充足 |
