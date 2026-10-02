@@ -21,52 +21,104 @@ triggers:
 - 下载失败时降级保留原 CDN URL
 - 避免重复下载（已存在则跳过）
 
+## 跨平台约定（动手前先读这一节）
+
+本技能**不写死任何盘符、系统临时目录或 shell**。Windows / macOS / Linux 通用。
+
+**① 定位 skill 目录**（脚本路径都从这里拼，不要写绝对路径）：
+
+```bash
+# Linux / macOS
+SKILL_DIR=~/.minimax/skills/wechat-article-to-markdown        # 本 runtime
+# SKILL_DIR=~/.claude/skills/wechat-article-to-markdown     # Claude Code
+```
+
+```powershell
+# Windows PowerShell
+$SKILL_DIR = "$env:USERPROFILE\.minimax\skills\wechat-article-to-markdown"
+```
+
+> 换 runtime 就换这一行。仓库里的原路径 `~/.hermes/skills/productivity/...`
+> 是历史约定，**已废弃**，按上表选当前 agent 的技能目录。
+
+**② 定位 Python 解释器**（`python3` / `python` / `py` 三个名字各平台不一样）：
+
+```bash
+command -v python3 >/dev/null && PY=python3 || PY=python
+```
+
+```powershell
+if (Get-Command python -ErrorAction SilentlyContinue) { $PY = "python" }
+elseif (Get-Command py -ErrorAction SilentlyContinue)    { $PY = "py" }
+else { $PY = "python3" }
+```
+
+**③ 输出目录**：必须由用户指定，或设环境变量。**不要**写死 `/mnt/d/MyLibrary`
+这类路径——那是某台 WSL 机器的约定，在 Windows 上会解析成当前盘符根下的
+`D:\mnt\d\MyLibrary`，在其他机器上也不存在。
+
+```bash
+export SAVE_DIR="${WECHAT_SAVE_DIR:-$HOME/WeChatArticles}"
+```
+
+```powershell
+$SAVE_DIR = if ($env:WECHAT_SAVE_DIR) { $env:WECHAT_SAVE_DIR } else { "$env:USERPROFILE\WeChatArticles" }
+```
+
+**④ 外部工具一律可选，用前先探测**：`defuddle` 和 `curl` 都不是必需依赖。
+脚本自身会用标准库 `urllib` 抓取。缺哪个都不阻塞流程。
+
 ## 工作流程
 
 ### 方式一：一条命令（推荐）
 
-`defuddle` 负责抓取和格式转换，再由本脚本下载图片：
+脚本会自己抓取 HTML，**这是唯一不需要任何外部工具的路径**：
 
 ```bash
 ARTICLE_URL="https://mp.weixin.qq.com/s/ARTICLE_ID"
-SAVE_DIR="/mnt/d/MyLibrary"
-
-# 1. 用 defuddle 提取内容
-defuddle parse "${ARTICLE_URL}" --md -o /tmp/wechat_article.md
-
-# 2. 爬取完整 HTML（含图片 URL）
-curl -s -L \
-  -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-  -H "Accept-Language: zh-CN,zh;q=0.9" \
-  "${ARTICLE_URL}" -o /tmp/wechat_article.html
-
-# 3. 运行脚本（下载图片 + 生成 Markdown）
-python ~/.hermes/skills/productivity/wechat-article-to-markdown/scripts/wechat_to_markdown.py \
-  "${ARTICLE_URL}" \
-  "${SAVE_DIR}"
+"$PY" "${SKILL_DIR}/scripts/wechat_to_markdown.py" "${ARTICLE_URL}" "${SAVE_DIR}"
 ```
 
-> **注：** 步骤 1（defuddle）和步骤 2（curl）可二选一。curl 保留完整 HTML 结构，适合需要手动调试的场景；defuddle 更快更干净。
+```powershell
+$PY "${SKILL_DIR}\scripts\wechat_to_markdown.py" $ARTICLE_URL $SAVE_DIR
+```
 
-### 方式二：自动抓取（无需手动 curl）
+### 方式二：先下载 HTML 再转换（需要调试或换抓取工具时）
 
-脚本内部可自动抓取 HTML，跳过步骤 2：
+如果想自己控制抓取（比如换 UA、抓下来的 HTML 要人工检查），先存成文件再传第三个参数：
 
 ```bash
-python ~/.hermes/skills/productivity/wechat-article-to-markdown/scripts/wechat_to_markdown.py \
-  "https://mp.weixin.qq.com/s/ARTICLE_ID" \
-  "/mnt/d/MyLibrary"
+"$PY" -c "import sys,urllib.request as u; open(sys.argv[2],'wb').write(u.urlopen(urllib.request.Request(sys.argv[1],headers={'User-Agent':'Mozilla/5.0','Accept-Language':'zh-CN,zh;q=0.9'}),timeout=20).read())" \
+  "${ARTICLE_URL}" "${HTML_FILE}"
+"$PY" "${SKILL_DIR}/scripts/wechat_to_markdown.py" "${ARTICLE_URL}" "${SAVE_DIR}" "${HTML_FILE}"
 ```
+
+```powershell
+Invoke-WebRequest -Uri $ARTICLE_URL -OutFile $HTML_FILE -Headers @{ "Accept-Language" = "zh-CN,zh;q=0.9" }
+$PY "${SKILL_DIR}\scripts\wechat_to_markdown.py" $ARTICLE_URL $SAVE_DIR $HTML_FILE
+```
+
+> 用 `python -c` / `Invoke-WebRequest` 而不是 `curl`，是因为 curl 在 Windows 上
+> 不一定有（Win10 1803+ 才内置 `curl.exe`），而上面两个在三个平台都自带。
+> 已有 HTML 时跳过这步直接调脚本。
 
 ### 步骤 3：确认结果
 
 ```bash
-# 查看生成的 Markdown 和本地图集
-ls -lh /mnt/d/MyLibrary/文章名_image_*.{jpg,png,webp,gif} 2>/dev/null
-head -5 /mnt/d/MyLibrary/文章标题.md
-grep "image_" /mnt/d/MyLibrary/文章标题.md  # 确认图片引用的是本地文件
+# 生成的 Markdown 和本地图集
+ls -1 "${SAVE_DIR}" | grep '_image_'
+head -5 "${SAVE_DIR}/文章标题.md"
+grep -c "image_" "${SAVE_DIR}/文章标题.md"   # 确认图片引用的是本地文件
 ```
+
+```powershell
+Get-ChildItem "$SAVE_DIR" -Filter *_image_* | Select-Object -ExpandProperty Name
+Get-Content "$SAVE_DIR\文章标题.md" -TotalCount 5 -Encoding UTF8
+(Select-String -Path "$SAVE_DIR\文章标题.md" -Pattern "image_").Count
+```
+
+> PowerShell 读中文文件必须带 `-Encoding UTF8`，否则控制台按 GBK 显示成乱码。
+> **那是显示层问题，不代表文件坏了**——用文件读取工具打开同一个文件就是正常中文。
 
 ## 保留的格式
 
@@ -120,9 +172,9 @@ grep "image_" /mnt/d/MyLibrary/文章标题.md  # 确认图片引用的是本地
 正文继续...
 ```
 
-生成的目录结构：
+生成的目录结构（`${SAVE_DIR}` 由用户指定，不写死）：
 ```
-/mnt/d/MyLibrary/
+<SAVE_DIR>/
 ├── AIAgent工程实践_image_001.jpg  ← 文章图片 1（带文章名前缀）
 ├── AIAgent工程实践_image_002.png  ← 文章图片 2
 ├── AIAgent工程实践_image_003.webp ← 文章图片 3
@@ -133,10 +185,12 @@ grep "image_" /mnt/d/MyLibrary/文章标题.md  # 确认图片引用的是本地
 
 | 情况 | 解决方案 |
 |------|----------|
-| defuddle 可用 | 优先使用，自动保留格式；再跑本脚本下载图片 |
-| defuddle 失败/不可用 | 用 curl 爬取 HTML，再跑本脚本 |
+| 脚本自己抓就够了 | **默认走这条**，零外部依赖，三平台通用 |
+| 想换抓取工具 / 调试 HTML | 用方式二先存 HTML，再传第三个参数 |
+| `python3` 命令不存在 | Windows 上是 `python` 或 `py`，见「跨平台约定」② |
 | 图片下载失败 | 降级为原 CDN URL 引用，文章仍可读 |
 | 重复运行同一篇文章 | 图片已存在则跳过，Markdown 追加 `_2` 后缀 |
 | 标题为空 | 备用：从 `var msg_title` 全局变量中提取 |
 | 内容提取失败 | 检查正则中 `\s+` 和 `\s*` 是否匹配实际空格 |
-| browser_navigate 遇到验证 | 用 defuddle 或 curl 可以绕过，无需浏览器 |
+| PowerShell 终端显示 `��` | 终端编码问题，**文件是好的**，用文件读取工具确认 |
+| 浏览器打开微信文章被拦截 | 正常，脚本走 `urllib` 直接抓，无需浏览器 |
