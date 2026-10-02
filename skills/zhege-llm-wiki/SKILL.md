@@ -24,6 +24,13 @@ triggers:
 
 > 把碎片化的信息变成持续积累、互相链接的知识库。你只需要提供素材，AI 做所有的整理工作。
 
+## 来源
+
+- **方法论依据**：Andrej Karpathy 提出的 llm-wiki 思路——让 agent 持续把素材整理成结构化、互相链接的 wiki。本 skill 是该思路在中文语境下的落地实现。
+- **原创**：知识库侧的 `.wiki-schema.md` schema 定义（由 init 生成，定义页级字段与关系类型）、来源总表（`scripts/source-registry.py` 及 `source-registry.tsv` / `source-record-contract.tsv` 两份数据契约）、页级关系类型词汇表（实现 / 依赖 / 对比 / 矛盾 / 衍生）、init / ingest / query / lint 四段式工作流、`templates/` 下 14 份页面模板，均为本仓库自研。
+- **脚本移植**：原 bash 脚本已按 `references/PORTING-CONTRACT.md` 的逐字节行为契约移植为 9 个 Python 脚本（仅标准库），行为保持一致，跨 Windows / macOS / Linux。
+- **授权**：本仓库未附 LICENSE 文件。
+
 ## 这个 skill 做什么
 
 llm-wiki 帮你构建一个**持续增长的个人知识库**。它不是传统的笔记软件，而是一个让 AI 帮你维护的 wiki 系统：

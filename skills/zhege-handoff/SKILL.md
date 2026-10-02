@@ -22,6 +22,12 @@ triggers:
 1. **存档文档** —— 落在 `<workspace>/docs/session-archives/` 的 Markdown，给"以后回看 / 下一个会话接续"用。
 2. **决策条目** —— 从会话里抽出值得长期保留的结论，**一条一个**问过用户后，写进项目指令文件（项目层）或长期记忆（用户 / agent 层）。
 
+## 来源
+
+- **参考**：`mattpocock-skills:handoff` 的交接存档产物结构。
+- **差异与原创**：本 skill 在其基础上增加「决策条目化 + 逐条确认后落盘」，并按可移植性约定重写为**不绑定单一 runtime** 的流程（能力探测 + 通用兜底，缺能力只降级不阻塞）。`references/` 下四份均为本仓库自研：`runtime-adapters.md`（各 runtime 路径与验证状态）、`extraction-rubric.md`（三问法判定）、`persistence-playbook.md`（落点与回读验证）、`archive-template.md`（存档模板）。
+- **授权**：本仓库未附 LICENSE 文件。
+
 ## 两条不可协商的规则
 
 - **未经用户逐条确认，不写任何持久化文件**（`AGENTS.md` / `CLAUDE.md` / 记忆）。存档文档本身可以直接写。

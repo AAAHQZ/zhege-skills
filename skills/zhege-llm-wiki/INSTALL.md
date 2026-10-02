@@ -97,7 +97,7 @@ Copy-Item -Path zhege-llm-wiki -Destination $SKILLS -Recurse -Force
 ├── INSTALL.md            # 本安装指南
 ├── references/
 │   └── AGENT.md          # Wiki Schema 参考
-├── templates/            # Wiki 页面模板（15 份，含中英双份的 index/log/overview/purpose）
+├── templates/            # Wiki 页面模板（14 份，含中英双份的 index/log/overview/purpose）
 └── scripts/              # 工具脚本（全部 Python 3，仅标准库）
     ├── init-wiki.py                  # 初始化知识库
     ├── lint-runner.py                # 批量 lint 入口

@@ -12,12 +12,15 @@
 
 ## 快速索引
 
-| 技能 | 描述 | 触发词 |
-|------|------|--------|
-| wechat-article-to-markdown | 微信公众号文章转 Markdown（图片本地化） | 微信文章转markdown |
-| zhege-llm-wiki | 个人知识库构建与维护 | 创建知识库 / 查询知识库 / 摄入知识 |
-| zhege-handoff | 会话复盘存档 + 决策条目化确认 | 存档这次会话 / 复盘 / 归档会话 |
-| zhege-kb-to-skill | 把知识语料做成可长期维护的 agent skill | 把资料做成 skill / 知识库怎么加内容 / 设计检索层和回答骨架 |
+| 技能 | 描述 | 触发词 | 来源 |
+|------|------|--------|------|
+| wechat-article-to-markdown | 微信公众号文章转 Markdown（图片本地化） | 微信文章转markdown | 自研（依据微信公开文章页结构） |
+| zhege-llm-wiki | 个人知识库构建与维护 | 创建知识库 / 查询知识库 / 摄入知识 | 方法论：Karpathy llm-wiki；实现自研 |
+| zhege-handoff | 会话复盘存档 + 决策条目化确认 | 存档这次会话 / 复盘 / 归档会话 | 参考 `mattpocock-skills:handoff`；其余自研 |
+| zhege-kb-to-skill | 把知识语料做成可长期维护的 agent skill | 把资料做成 skill / 知识库怎么加内容 / 设计检索层和回答骨架 | 自研 |
+
+每个技能的「来源」详细说明（依据 / 原创部分 / 授权）见其 `SKILL.md` 的 `## 来源` 段。
+**本仓库未附 LICENSE 文件**，转载或二次分发前请先确认授权。
 
 ## 安装到哪个 runtime
 

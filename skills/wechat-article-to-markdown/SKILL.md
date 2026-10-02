@@ -13,6 +13,12 @@ triggers:
 
 将微信公众号文章转换为 Markdown，**图片下载到本地目录**，避免微信 CDN 链接过期导致图片无法显示。
 
+## 来源
+
+- **依据**：微信公众号公开文章页的 HTML 结构（正文容器 `class="rich_media_content"`、`img` 的 `data-src` 属性）。仅对**未登录状态下的公开页面**做 GET 读取，不涉及任何登录态或凭据。
+- **原创**：正文抽取、HTML→Markdown 转换、图片本地化、CDN 降级与占位图过滤为本仓库自研，实现见 `scripts/wechat_to_markdown.py`（仅标准库）。
+- **授权**：本仓库未附 LICENSE 文件。
+
 ## 核心改进：图片本地化
 
 - 扫描文章中所有 `<img>`（优先 `data-src` 属性）
