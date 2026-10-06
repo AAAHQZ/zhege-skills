@@ -117,6 +117,20 @@ frontmatter 必填 `name` 与 `description`；`triggers`（触发词列表）建
 根 `README.md` 的「快速索引」表同步加 `来源` 列，两处内容必须一致。
 来源写的是**可核实的事实**：引用的文件必须真实存在，链接必须能打开，推测出来的关系不要写。
 
+### 衍生技能来源
+
+`skills/brainstorming/` 派生自 [obra/superpowers](https://github.com/obra/superpowers) 的 brainstorming 技能，**已做独立化改造，不再依赖 superpowers 生态**。来源信息记录在本文件，不放进 `SKILL.md`（该技能是上述 `## 来源` 段约定的例外）。
+
+| 条目 | 内容 |
+|---|---|
+| **依据** | obra/superpowers 的 brainstorming 技能——三路径分类（spike / bounded / architectural）、设计审批闸门 |
+| **独立化改造** | 去除对 `writing-plans`、`elements-of-style`、`frontend-design`、`mcp-builder` 等 superpowers 技能的依赖，改为通用实现指引；设计文档路径 `docs/superpowers/specs/` → `docs/specs/`；**完全移除上游的视觉伴侣（visual companion）功能**及其 Node.js + bash 脚本，使本技能成为零依赖、零脚本的纯 Markdown 技能 |
+| **授权** | 本仓库未附 LICENSE 文件 |
+
+本技能现作为 mattpocock 技能包 `to-spec` 的**前置**：讨论需求 → 生成草稿 spec →（可选）用 `grilling` / `grill-with-docs` 拷问 → 交 `to-spec` 合成并发布。`to-spec` 与 grilling 缺失时**只降级不阻塞**（自己写 `docs/specs/`、手动拷问）。
+
+> 后续维护不要再把 superpowers 的依赖引回来；`SKILL.md` 的架构终态是「交给 `to-spec`」，不是调用某个外部 planning skill。
+
 ## Code style
 
 - **文档与注释一律中文**，命令、路径、专有名词保持原样不翻译

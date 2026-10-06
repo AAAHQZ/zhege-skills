@@ -14,12 +14,14 @@
 
 | 技能 | 描述 | 触发词 | 来源 |
 |------|------|--------|------|
+| brainstorming | 动手前的需求讨论与设计；架构路径产出草稿 spec，交 `to-spec` 定稿 | 头脑风暴 / 需求讨论 / 设计讨论 / 写规格 | 派生自 obra/superpowers；来源见 AGENTS.md「衍生技能来源」 |
 | wechat-article-to-markdown | 微信公众号文章转 Markdown（图片本地化） | 微信文章转markdown | 自研（依据微信公开文章页结构） |
 | zhege-llm-wiki | 个人知识库构建与维护 | 创建知识库 / 查询知识库 / 摄入知识 | 方法论：Karpathy llm-wiki；实现自研 |
 | zhege-handoff | 会话复盘存档 + 决策条目化确认 | 存档这次会话 / 复盘 / 归档会话 | 参考 `mattpocock-skills:handoff`；其余自研 |
 | zhege-kb-to-skill | 把知识语料做成可长期维护的 agent skill | 把资料做成 skill / 知识库怎么加内容 / 设计检索层和回答骨架 | 自研 |
 
-每个技能的「来源」详细说明（依据 / 原创部分 / 授权）见其 `SKILL.md` 的 `## 来源` 段。
+每个技能的「来源」详细说明（依据 / 原创部分 / 授权）见其 `SKILL.md` 的 `## 来源` 段；
+`brainstorming` 为例外，其来源记录在 `AGENTS.md` 的「衍生技能来源」。
 **本仓库未附 LICENSE 文件**，转载或二次分发前请先确认授权。
 
 ## 安装到哪个 runtime
@@ -37,6 +39,20 @@
 **不要**把路径硬展开成某一台机器的绝对路径。
 
 ## 技能详情
+
+### brainstorming
+
+在动手做任何创造性工作之前，先把需求聊清楚、把设计定下来。按工作量分三条路径：**Spike**（可行性问题，只给结论）、**Bounded**（已有代码上的小改动，聊天里给短设计）、**Architectural**（新项目 / 新子系统，产出草稿 spec）。
+
+**触发词：** 头脑风暴 / 需求讨论 / 设计讨论 / 方案设计 / 架构设计 / 写规格
+
+**工作流程（架构路径）：** 探索项目上下文 → 逐个澄清问题 → 提 2-3 个方案 → 分段确认设计 → 写草稿 spec（按 `to-spec` 的章节形状）→ 草稿自审 →（可选）用 `grilling` / `grill-with-docs` 拷问 → 交 `to-spec` 合成并发布。
+
+**与 mattpocock 技能包的关系：** `to-spec` 是本技能的下游（它不提问，只合成会话），`grilling` / `grill-with-docs` 是草稿的可选拷问环节。二者缺失时**只降级不阻塞**：自己写 `docs/specs/` 下的 spec，或按同样轮次手动拷问。
+
+**依赖：** 零依赖（纯 Markdown、无脚本、不联网）。
+
+---
 
 ### wechat-article-to-markdown
 
