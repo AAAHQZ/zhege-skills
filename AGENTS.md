@@ -117,6 +117,15 @@ frontmatter 必填 `name` 与 `description`；`triggers`（触发词列表）建
 根 `README.md` 的「快速索引」表同步加 `来源` 列，两处内容必须一致。
 来源写的是**可核实的事实**：引用的文件必须真实存在，链接必须能打开，推测出来的关系不要写。
 
+### 第三方技能副本
+
+`skills/mattpocock/` 是 [mattpocock/skills](https://github.com/mattpocock/skills.git) 的逐字副本（MIT，25 个技能），不遵循上述技能约定：无 `INSTALL.md`、无 `## 来源` 段、无 `zhege-`` 前缀、不进「快速索引」表。
+
+- **不手改副本内容。** 要改就改上游，或在本仓库另建技能。
+- **`LICENSE` 属于副本的一部分**，不能删。
+- **不做自动同步。** 需要更新时，手动整体替换目录内容，保持与上游逐字节一致。
+- 上游与本仓库硬约束冲突的地方（如 `.sh` 脚本），照实记录在副本目录的 README 里，不要悄悄「顺手修好」。
+
 ### 衍生技能来源
 
 `skills/brainstorming/` 派生自 [obra/superpowers](https://github.com/obra/superpowers) 的 brainstorming 技能，**已做独立化改造，不再依赖 superpowers 生态**。来源信息记录在本文件，不放进 `SKILL.md`（该技能是上述 `## 来源` 段约定的例外）。

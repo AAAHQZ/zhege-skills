@@ -24,6 +24,19 @@
 `brainstorming` 为例外，其来源记录在 `AGENTS.md` 的「衍生技能来源」。
 **本仓库未附 LICENSE 文件**，转载或二次分发前请先确认授权。
 
+## 第三方技能副本（vendored）
+
+[`skills/mattpocock/`](skills/mattpocock/) 是 **Matt Pocock 工程技能包**（25 个技能）的逐字副本，**MIT 授权**。
+
+它**不是本仓库的技能**，因此：
+
+- 不在上表的「快速索引」里（那张表只索引本仓库自有的技能）
+- 不遵循本仓库约定：无 `INSTALL.md`、无 `## 来源` 段、无 `zhege-` 前缀
+- **不要改里面的文件**——副本必须与上游逐字节相同，否则「落后了多少」就说不清
+
+技能清单见 `AGENTS.md` 的「第三方技能副本」。使用前注意 **`code-review` 与内置技能同名会遮蔽**。
+`brainstorming` 的下游 `to-spec`、可选拷问 `grilling` / `grill-with-docs` 均来自这个副本。
+
 ## 安装到哪个 runtime
 
 技能目录名与 `SKILL.md` 文件名一致即可被发现。
