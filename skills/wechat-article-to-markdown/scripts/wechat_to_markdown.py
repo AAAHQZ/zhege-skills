@@ -3,11 +3,20 @@
 微信公众号文章转 Markdown 格式保存（本地图片版）
 - 下载所有图片到本地，保留原文格式
 - 生成的 Markdown 使用本地图片路径，永久可用
-用法: python wechat_to_markdown.py <ARTICLE_URL> [SAVE_DIR]
+用法: python wechat_to_markdown.py <ARTICLE_URL> [SAVE_DIR] [HTML_FILE]
+
+跨平台约定（不要写死任何盘符或系统临时目录）：
+  SAVE_DIR   位置参数 > 环境变量 WECHAT_SAVE_DIR > ~/WeChatArticles
+  HTML_FILE  位置参数 > 环境变量 WECHAT_HTML    > 不预读，脚本自己抓取
+             （原先写死的 /tmp/wechat_article.html 在 Windows 上会解析成
+               当前盘符根下的 D:\\tmp\\，静默读不到或读到别的盘的陈旧文件）
 """
 
-import re, html, os, sys, urllib.request, urllib.error, time
+import re, html, os, sys, tempfile, urllib.request, urllib.error, time
+from pathlib import Path
 from urllib.parse import urlparse, unquote
+
+DEFAULT_SAVE_DIR_NAME = "WeChatArticles"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -258,19 +267,39 @@ def wechat_to_markdown(html_content: str, save_dir: str) -> tuple:
 
 
 def main():
+    # Windows 控制台默认 GBK，print 中文可能抛 UnicodeEncodeError。
+    # 兜底只保证不崩；终端显示乱码是显示层问题，不代表文件坏了。
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     if len(sys.argv) < 2:
-        print("用法: python wechat_to_markdown.py <ARTICLE_URL> [SAVE_DIR]")
+        print("用法: python wechat_to_markdown.py <ARTICLE_URL> [SAVE_DIR] [HTML_FILE]")
         sys.exit(1)
 
     article_url = sys.argv[1]
-    save_dir = sys.argv[2] if len(sys.argv) > 2 else "/mnt/d/MyLibrary"
-    html_path = "/tmp/wechat_article.html"
+
+    # SAVE_DIR：位置参数 > 环境变量 > 用户主目录（跨平台，不写死盘符）
+    save_dir = (
+        sys.argv[2]
+        if len(sys.argv) > 2
+        else os.environ.get("WECHAT_SAVE_DIR")
+        or str(Path.home() / DEFAULT_SAVE_DIR_NAME)
+    )
+    save_dir = os.path.expanduser(save_dir)
+
+    # HTML_FILE：位置参数 > 环境变量 > 空（空则直接抓取，不落临时文件）
+    html_path = sys.argv[3] if len(sys.argv) > 3 else os.environ.get("WECHAT_HTML", "")
+    html_path = os.path.expanduser(html_path) if html_path else ""
 
     os.makedirs(save_dir, exist_ok=True)
 
-    # 优先读取已下载的 HTML；若无则尝试直接抓取
-    if not os.path.exists(html_path):
-        print(f"[INFO] {html_path} 不存在，尝试直接抓取...")
+    # 优先读取已下载的 HTML；若无（或未指定）则直接抓取
+    if not html_path or not os.path.exists(html_path):
+        if html_path:
+            print(f"[INFO] {html_path} 不存在，尝试直接抓取...")
+        else:
+            print("[INFO] 未指定 HTML_FILE，直接抓取...")
         try:
             req = urllib.request.Request(
                 article_url,
@@ -285,7 +314,8 @@ def main():
             print(f"[ERROR] 无法抓取页面: {e}")
             sys.exit(1)
     else:
-        with open(html_path, 'r', encoding='utf-8') as f:
+        # utf-8-sig：容忍 BOM（用户可能用记事本/编辑器另存过这个 HTML）
+        with open(html_path, 'r', encoding='utf-8-sig') as f:
             html_content = f.read()
 
     title, md_body = wechat_to_markdown(html_content, save_dir)
