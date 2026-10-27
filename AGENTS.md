@@ -119,11 +119,11 @@ frontmatter 必填 `name` 与 `description`；`triggers`（触发词列表）建
 
 ### 第三方技能副本
 
-`skills/mattpocock/` 是 [mattpocock/skills](https://github.com/mattpocock/skills.git) 的逐字副本（MIT，25 个技能），不遵循上述技能约定：无 `INSTALL.md`、无 `## 来源` 段、无 `zhege-`` 前缀、不进「快速索引」表。
+`skills/mattpocock/` 是 [mattpocock/skills](https://github.com/mattpocock/skills.git) 的逐字副本（MIT，27 个技能，pin `59db609`），不遵循上述技能约定：无 `INSTALL.md`、无 `## 来源` 段、无 `zhege-`` 前缀、不进「快速索引」表。
 
 - **不手改副本内容。** 要改就改上游，或在本仓库另建技能。
 - **`LICENSE` 属于副本的一部分**，不能删。
-- **不做自动同步。** 需要更新时，手动整体替换目录内容，保持与上游逐字节一致。
+- **不做自动同步。** 需要更新时，手动整体替换目录内容，保持与上游逐字节一致，并在副本目录的 `README.md` 里更新 pin commit 与「本次更新改了什么」。
 - 上游与本仓库硬约束冲突的地方（如 `.sh` 脚本），照实记录在副本目录的 README 里，不要悄悄「顺手修好」。
 
 ### 衍生技能来源

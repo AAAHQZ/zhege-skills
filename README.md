@@ -26,7 +26,8 @@
 
 ## 第三方技能副本（vendored）
 
-[`skills/mattpocock/`](skills/mattpocock/) 是 **Matt Pocock 工程技能包**（25 个技能）的逐字副本，**MIT 授权**。
+[`skills/mattpocock/`](skills/mattpocock/) 是 **Matt Pocock 工程技能包**（27 个技能）的逐字副本，**MIT 授权**。
+上游 pin：`main` 的 `59db609`（2026-10-27）。副本相对上游的三处搬运（压平 bucket、不收 bucket README、保留 `agents/openai.yaml`）、本次更新改动（新增 `implement-spec` / `pr` / `retro`，删除 `resolving-merge-conflicts`，`CONTEXT-FORMAT.md` → `GLOSSARY-FORMAT.md`）与完整技能清单见 [`skills/mattpocock/README.md`](skills/mattpocock/README.md)。
 
 它**不是本仓库的技能**，因此：
 
@@ -34,7 +35,7 @@
 - 不遵循本仓库约定：无 `INSTALL.md`、无 `## 来源` 段、无 `zhege-` 前缀
 - **不要改里面的文件**——副本必须与上游逐字节相同，否则「落后了多少」就说不清
 
-技能清单见 `AGENTS.md` 的「第三方技能副本」。使用前注意 **`code-review` 与内置技能同名会遮蔽**。
+技能清单、调用方式（用户触发 / 模型触发）与更新记录见 [`skills/mattpocock/README.md`](skills/mattpocock/README.md)。使用前注意 **`code-review` 与内置技能同名会遮蔽**。
 `brainstorming` 的下游 `to-spec`、可选拷问 `grilling` / `grill-with-docs` 均来自这个副本。
 
 ## 安装到哪个 runtime
